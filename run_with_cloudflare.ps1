@@ -1,121 +1,87 @@
-<#
-.SYNOPSIS
-    Запускает Cloudflare Quick Tunnel + Scalper Telegram Service.
-    Cloudflare автоматически предоставляет бесплатный HTTPS-URL — ngrok не нужен.
-
-.NOTES
-    Требует cloudflared.exe в PATH или в папке C:\Scalper.
-    Скачать: https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/
-    (одиночный .exe файл, регистрация не нужна для quick tunnels)
-
-    Запускать вместо run_gui.ps1 — одновременно нельзя!
-#>
-
 $ErrorActionPreference = "Stop"
 $ScriptDir = $PSScriptRoot
 Set-Location $ScriptDir
 
-# ── 1. Проверяем cloudflared ──────────────────────────────────────────────────
-$cfExe = $null
-if (Get-Command cloudflared -ErrorAction SilentlyContinue) {
-    $cfExe = "cloudflared"
-} elseif (Test-Path "$ScriptDir\cloudflared.exe") {
-    $cfExe = "$ScriptDir\cloudflared.exe"
-} else {
-    Write-Host ""
-    Write-Host "  cloudflared.exe не найден!" -ForegroundColor Red
-    Write-Host "  Скачай: https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/" -ForegroundColor Yellow
-    Write-Host "  Положи cloudflared.exe в папку C:\Scalper и запусти снова." -ForegroundColor Yellow
-    Write-Host ""
-    pause
-    exit 1
-}
-
-# ── 2. Загружаем .env ─────────────────────────────────────────────────────────
+# 1. Load .env
 if (Test-Path "$ScriptDir\.env") {
     Get-Content "$ScriptDir\.env" | ForEach-Object {
         if ($_ -match "^\s*([^#=\s][^=]*)=(.*)$") {
-            $key = $matches[1].Trim()
-            $val = $matches[2].Trim()
-            [System.Environment]::SetEnvironmentVariable($key, $val, "Process")
+            [System.Environment]::SetEnvironmentVariable($matches[1].Trim(), $matches[2].Trim(), "Process")
         }
     }
     Write-Host "Loaded .env" -ForegroundColor Gray
 } else {
-    Write-Host ".env not found — set BOT_TOKEN manually!" -ForegroundColor Red
-    pause
-    exit 1
+    Write-Host ".env not found!" -ForegroundColor Red; pause; exit 1
 }
 
-$port    = if ($env:API_PORT) { $env:API_PORT } else { "8100" }
-$logFile = "$env:TEMP\scalper_cloudflared.log"
+$port = if ($env:API_PORT) { $env:API_PORT } else { "8100" }
 
-# ── 3. Запускаем cloudflared в фоне ──────────────────────────────────────────
+# 2. Start SSH tunnel via serveo.net
 Write-Host ""
-Write-Host "Starting Cloudflare tunnel on port $port ..." -ForegroundColor Cyan
+Write-Host "Starting SSH tunnel (serveo.net) on port $port ..." -ForegroundColor Cyan
 
-if (Test-Path $logFile) { Remove-Item $logFile -Force }
+$sshLog = "$env:TEMP\scalper_ssh.log"
+if (Test-Path $sshLog) { Remove-Item $sshLog -Force }
 
-$cfProcess = Start-Process `
-    -FilePath $cfExe `
-    -ArgumentList "tunnel", "--url", "http://localhost:$port" `
-    -RedirectStandardError $logFile `
-    -NoNewWindow `
-    -PassThru
+$sshProcess = Start-Process `
+    -FilePath "ssh" `
+    -ArgumentList "-o","StrictHostKeyChecking=no","-o","ServerAliveInterval=30","-R","80:localhost:$port","serveo.net" `
+    -RedirectStandardOutput $sshLog `
+    -RedirectStandardError "$env:TEMP\scalper_ssh_err.log" `
+    -NoNewWindow -PassThru
 
-# ── 4. Ждём URL от cloudflare (до 30 сек) ────────────────────────────────────
-$cfUrl   = $null
-$waited  = 0
-$timeout = 30
-
+# Wait for tunnel URL
+$tunnelUrl = $null
+$waited = 0
 Write-Host "Waiting for tunnel URL" -NoNewline -ForegroundColor Gray
-while ($waited -lt $timeout) {
-    Start-Sleep -Seconds 1
-    $waited++
+while ($waited -lt 20) {
+    Start-Sleep -Seconds 1; $waited++
     Write-Host "." -NoNewline -ForegroundColor Gray
-
-    if (Test-Path $logFile) {
-        $content = Get-Content $logFile -Raw -ErrorAction SilentlyContinue
-        if ($content -match 'https://[a-z0-9-]+\.trycloudflare\.com') {
-            $cfUrl = $Matches[0]
-            break
+    if (Test-Path $sshLog) {
+        $content = Get-Content $sshLog -Raw -ErrorAction SilentlyContinue
+        if ($content -match 'https://[a-z0-9]+\.serveo\.net') {
+            $tunnelUrl = $Matches[0]; break
+        }
+    }
+    # Also check stderr
+    if (Test-Path "$env:TEMP\scalper_ssh_err.log") {
+        $errContent = Get-Content "$env:TEMP\scalper_ssh_err.log" -Raw -ErrorAction SilentlyContinue
+        if ($errContent -match 'https://[a-z0-9]+\.serveo\.net') {
+            $tunnelUrl = $Matches[0]; break
+        }
+        if ($errContent -match 'Forwarding HTTP traffic from (https://\S+)') {
+            $tunnelUrl = $Matches[1]; break
         }
     }
 }
 Write-Host ""
 
-if (-not $cfUrl) {
-    Write-Host "Could not detect tunnel URL. Check log: $logFile" -ForegroundColor Yellow
-    Write-Host "Continuing without WEBAPP tunnel URL..." -ForegroundColor Yellow
+if (-not $tunnelUrl) {
+    Write-Host "Could not get tunnel URL. Check if serveo.net is accessible." -ForegroundColor Yellow
+    Write-Host "Bot will still work without Mini App button." -ForegroundColor Gray
+    $sshProcess = $null
 } else {
-    Write-Host "Cloudflare tunnel: $cfUrl" -ForegroundColor Green
-
-    # Передаём API_URL в Python-сервис
-    $env:API_URL = $cfUrl
-
-    # Если WEBAPP_URL не задан вручную (или это старый cloudflare URL) — берём тоннельный
+    $env:API_URL = $tunnelUrl
+    Write-Host "Tunnel: $tunnelUrl" -ForegroundColor Green
     if (-not $env:WEBAPP_URL) {
-        $env:WEBAPP_URL = "$cfUrl/webapp/index.html"
+        $env:WEBAPP_URL = "$tunnelUrl/webapp/index.html"
         Write-Host "WEBAPP_URL = $env:WEBAPP_URL" -ForegroundColor Yellow
-        Write-Host "(Set WEBAPP_URL in .env to use GitHub Pages instead)" -ForegroundColor Gray
     } else {
         Write-Host "WEBAPP_URL (GitHub Pages): $env:WEBAPP_URL" -ForegroundColor Green
-        Write-Host "API_URL   (Cloudflare):    $cfUrl" -ForegroundColor Green
+        Write-Host "API_URL   (Tunnel):        $tunnelUrl" -ForegroundColor Green
     }
 }
 
 Write-Host ""
 Write-Host "Starting Telegram service..." -ForegroundColor Cyan
-Write-Host "Press Ctrl+C to stop." -ForegroundColor Gray
+Write-Host "Press Ctrl+C to stop."
 Write-Host ""
 
-# ── 5. Запускаем Python-сервис ─────────────────────────────────────────────────
 try {
     & "$ScriptDir\venv\Scripts\python.exe" "$ScriptDir\run_tg_service.py"
 } finally {
-    # Останавливаем cloudflared при выходе
-    if ($cfProcess -and -not $cfProcess.HasExited) {
-        $cfProcess.Kill()
-        Write-Host "Cloudflare tunnel stopped." -ForegroundColor Gray
+    if ($sshProcess -and -not $sshProcess.HasExited) {
+        $sshProcess.Kill()
+        Write-Host "SSH tunnel stopped." -ForegroundColor Gray
     }
 }
