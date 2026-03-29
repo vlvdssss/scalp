@@ -292,11 +292,11 @@ def build_application(token: str) -> Application:
     application.add_handler(CommandHandler("safe",     cmd_safe))
     application.add_handler(CallbackQueryHandler(cb_handler))
 
-    # Poll notify_queue every 3 seconds
+    # Poll notify_queue every 10 seconds
     application.job_queue.run_repeating(
         _notification_job,
-        interval=3,
-        first=5,
+        interval=10,
+        first=10,
     )
 
     return application

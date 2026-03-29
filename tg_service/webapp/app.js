@@ -129,12 +129,20 @@ function toast(msg) {
 }
 
 // ── Refresh ────────────────────────────────────────────────────────────────────
+let _refreshing = false;
+let _errCount = 0;
 async function refresh() {
+  if (_refreshing) return;   // skip if previous request still in flight
+  _refreshing = true;
   try {
     const status = await api("/status");
     renderState(status);
+    _errCount = 0;
   } catch (e) {
-    toast("⚠ " + e.message);
+    _errCount++;
+    if (_errCount <= 2) toast("⚠ " + e.message);  // only show first 2 errors
+  } finally {
+    _refreshing = false;
   }
 }
 
@@ -170,8 +178,8 @@ document.addEventListener("DOMContentLoaded", () => {
   $("btn-stop").addEventListener("click",    handleStop);
   $("btn-safe").addEventListener("click",    handleSafe);
 
-  // Auto-refresh every 4 seconds
+  // Auto-refresh every 2 seconds (skip if previous request still in flight)
   refresh();
-  setInterval(refresh, 4000);
+  setInterval(refresh, 2000);
 });
 
