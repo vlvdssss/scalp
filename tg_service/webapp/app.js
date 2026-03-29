@@ -174,3 +174,4 @@ document.addEventListener("DOMContentLoaded", () => {
   refresh();
   setInterval(refresh, 4000);
 });
+
