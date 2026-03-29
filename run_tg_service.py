@@ -127,6 +127,22 @@ async def main() -> None:
     await tg_app.start()
     await tg_app.updater.start_polling(drop_pending_updates=True)
 
+    # ── Update Menu Button URL with current tunnel ────────────────────────────
+    if webapp_url:
+        from tg_service.bot import _get_webapp_url
+        from telegram import MenuButtonWebApp, WebAppInfo
+        full_url = _get_webapp_url()
+        try:
+            await tg_app.bot.set_chat_menu_button(
+                menu_button=MenuButtonWebApp(
+                    text="📊 Панель",
+                    web_app=WebAppInfo(url=full_url),
+                )
+            )
+            log.info("Menu button updated: %s", full_url)
+        except Exception as e:
+            log.warning("Could not update menu button: %s", e)
+
     log.info("Service ready. Press Ctrl+C to stop.")
 
     try:
