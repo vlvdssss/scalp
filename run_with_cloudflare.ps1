@@ -30,7 +30,7 @@ if (Test-Path $sshErrLogPath) { Remove-Item $sshErrLogPath -Force -ErrorAction S
 
 $sshProcess = Start-Process `
     -FilePath "ssh" `
-    -ArgumentList "-o","StrictHostKeyChecking=no","-o","ServerAliveInterval=30","-R","80:localhost:$port","serveo.net" `
+    -ArgumentList "-o","StrictHostKeyChecking=no","-o","ServerAliveInterval=30","-R","80:127.0.0.1:$port","serveo.net" `
     -RedirectStandardOutput $sshLog `
     -RedirectStandardError $sshErrLogPath `
     -NoNewWindow -PassThru
