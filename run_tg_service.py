@@ -82,6 +82,11 @@ async def main() -> None:
     api_port     = int(os.getenv("API_PORT", "8100"))
     api_key      = os.getenv("API_KEY", "")
 
+    if api_url:
+        log.info("API URL (tunnel): %s", api_url)
+    else:
+        log.warning("API_URL not set — Mini App will not be able to call backend (run via run_with_cloudflare.ps1)")
+
     # ── Bridge + guard ────────────────────────────────────────────────────────
     from tg_service.bridge import BotBridge
     from tg_service.pause_guard import PauseGuard

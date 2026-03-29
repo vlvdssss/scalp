@@ -32,6 +32,7 @@ from telegram.ext import (
     CommandHandler,
     ContextTypes,
 )
+from telegram.request import HTTPXRequest
 
 log = logging.getLogger(__name__)
 
@@ -148,15 +149,15 @@ def _fmt_state() -> str:
     pnl_icon = "🟢" if pnl >= 0 else "🔴"
 
     lines = [
-        f"*XAUUSD Scalper*",
+        "<b>XAUUSD Scalper</b>",
         f"MT5 {conn}  |  Engine: {'✅ ON' if running else '⬜ OFF'}",
-        f"State: `{state}`  Mode: `{mode}`",
+        f"State: <code>{state}</code>  Mode: <code>{mode}</code>",
         "",
-        f"💰 Balance:  `{bal:.2f}$`",
-        f"💼 Equity:   `{eq:.2f}$`",
-        f"{pnl_icon} Session:  `{pnl_sign}{pnl:.2f}$`",
-        f"📊 Trades:   `{trades}`  WR `{wr:.0f}%`",
-        f"📈 Spread:   `{spread:.1f} pts`",
+        f"💰 Balance:  <code>{bal:.2f}$</code>",
+        f"💼 Equity:   <code>{eq:.2f}$</code>",
+        f"{pnl_icon} Session:  <code>{pnl_sign}{pnl:.2f}$</code>",
+        f"📊 Trades:   <code>{trades}</code>  WR <code>{wr:.0f}%</code>",
+        f"📈 Spread:   <code>{spread:.1f} pts</code>",
         "",
         f"📌 Position: {pos_text}",
         pg_text,
@@ -172,7 +173,7 @@ async def cmd_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
         return
     await update.message.reply_text(
         _fmt_state(),
-        parse_mode=ParseMode.MARKDOWN_V2,
+        parse_mode=ParseMode.HTML,
         reply_markup=_make_keyboard(),
     )
 
@@ -183,7 +184,7 @@ async def cmd_status(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
         return
     await update.message.reply_text(
         _fmt_state(),
-        parse_mode=ParseMode.MARKDOWN_V2,
+        parse_mode=ParseMode.HTML,
         reply_markup=_make_keyboard(),
     )
 
@@ -196,7 +197,7 @@ async def cmd_stop_bot(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
         await update.message.reply_text("⚠ Bridge not ready.")
         return
     result = _bridge.stop()
-    await update.message.reply_text(f"🛑 stop → `{result}`", parse_mode=ParseMode.MARKDOWN_V2)
+    await update.message.reply_text(f"🛑 stop → <code>{result}</code>", parse_mode=ParseMode.HTML)
 
 
 async def cmd_safe(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
@@ -229,14 +230,14 @@ async def cb_handler(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     if data == "cb_start":
         try:
             result = _bridge.start()
-            text = f"▶ start → `{result}`"
+            text = f"▶ start → <code>{result}</code>"
         except Exception as exc:
             text = f"❌ {exc}"
 
     elif data == "cb_stop":
         try:
             result = _bridge.stop()
-            text = f"■ stop → `{result}`"
+            text = f"■ stop → <code>{result}</code>"
         except Exception as exc:
             text = f"❌ {exc}"
 
@@ -252,7 +253,7 @@ async def cb_handler(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     try:
         await query.edit_message_text(
             text,
-            parse_mode=ParseMode.MARKDOWN_V2,
+            parse_mode=ParseMode.HTML,
             reply_markup=_make_keyboard(),
         )
     except Exception:
@@ -282,7 +283,8 @@ async def _notification_job(ctx: ContextTypes.DEFAULT_TYPE) -> None:
 # ── Application builder ────────────────────────────────────────────────────────
 
 def build_application(token: str) -> Application:
-    application = Application.builder().token(token).build()
+    request = HTTPXRequest(connection_pool_size=8, read_timeout=30, write_timeout=30)
+    application = Application.builder().token(token).request(request).build()
 
     application.add_handler(CommandHandler("start",    cmd_start))
     application.add_handler(CommandHandler("status",   cmd_status))
