@@ -21,13 +21,18 @@ Write-Host ""
 Write-Host "Starting SSH tunnel (serveo.net) on port $port ..." -ForegroundColor Cyan
 
 $sshLog = "$env:TEMP\scalper_ssh.log"
-if (Test-Path $sshLog) { Remove-Item $sshLog -Force }
+$sshErrLogPath = "$env:TEMP\scalper_ssh_err.log"
+# Kill any leftover SSH tunnel processes first
+Get-Process ssh -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+Start-Sleep -Milliseconds 500
+if (Test-Path $sshLog) { Remove-Item $sshLog -Force -ErrorAction SilentlyContinue }
+if (Test-Path $sshErrLogPath) { Remove-Item $sshErrLogPath -Force -ErrorAction SilentlyContinue }
 
 $sshProcess = Start-Process `
     -FilePath "ssh" `
     -ArgumentList "-o","StrictHostKeyChecking=no","-o","ServerAliveInterval=30","-R","80:localhost:$port","serveo.net" `
     -RedirectStandardOutput $sshLog `
-    -RedirectStandardError "$env:TEMP\scalper_ssh_err.log" `
+    -RedirectStandardError $sshErrLogPath `
     -NoNewWindow -PassThru
 
 # Wait for tunnel URL
@@ -37,20 +42,15 @@ Write-Host "Waiting for tunnel URL" -NoNewline -ForegroundColor Gray
 while ($waited -lt 20) {
     Start-Sleep -Seconds 1; $waited++
     Write-Host "." -NoNewline -ForegroundColor Gray
-    if (Test-Path $sshLog) {
-        $content = Get-Content $sshLog -Raw -ErrorAction SilentlyContinue
-        if ($content -match 'https://[a-z0-9]+\.serveo\.net') {
-            $tunnelUrl = $Matches[0]; break
-        }
-    }
-    # Also check stderr
-    if (Test-Path "$env:TEMP\scalper_ssh_err.log") {
-        $errContent = Get-Content "$env:TEMP\scalper_ssh_err.log" -Raw -ErrorAction SilentlyContinue
-        if ($errContent -match 'https://[a-z0-9]+\.serveo\.net') {
-            $tunnelUrl = $Matches[0]; break
-        }
-        if ($errContent -match 'Forwarding HTTP traffic from (https://\S+)') {
-            $tunnelUrl = $Matches[1]; break
+    foreach ($logFile in @($sshLog, $sshErrLogPath)) {
+        if (Test-Path $logFile) {
+            $content = Get-Content $logFile -Raw -ErrorAction SilentlyContinue
+            if ($content -match 'Forwarding HTTP traffic from (https://\S+)') {
+                $tunnelUrl = $Matches[1]; break
+            }
+            if ($content -match '(https://[a-z0-9A-Z_-]+\.serveo(?:usercontent)?\.(?:net|com))') {
+                $tunnelUrl = $Matches[1]; break
+            }
         }
     }
 }
