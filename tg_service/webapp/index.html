@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+  <title>XAUUSD Scalper</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <span class="header-title">XAUUSD Scalper</span>
+    <span class="badge" id="badge-state">IDLE</span>
+    <span class="badge badge-mt5" id="badge-mt5">MT5</span>
+    <button class="icon-btn" id="btn-refresh" title="Refresh">↻</button>
+  </header>
+
+  <!-- Pause Guard Notice -->
+  <div class="pause-banner" id="pause-banner" style="display:none">
+    🔴 <span id="pause-text">PauseGuard active</span>
+  </div>
+
+  <!-- Metrics grid -->
+  <section class="metrics">
+    <div class="metric-card dim">
+      <div class="metric-label">Bid</div>
+      <div class="metric-value" id="m-bid">—</div>
+    </div>
+    <div class="metric-card dim">
+      <div class="metric-label">Ask</div>
+      <div class="metric-value" id="m-ask">—</div>
+    </div>
+    <div class="metric-card dim">
+      <div class="metric-label">Spread</div>
+      <div class="metric-value" id="m-spread">—</div>
+    </div>
+    <div class="metric-card primary">
+      <div class="metric-label">Balance</div>
+      <div class="metric-value" id="m-balance">—</div>
+    </div>
+    <div class="metric-card primary">
+      <div class="metric-label">Equity</div>
+      <div class="metric-value" id="m-equity">—</div>
+    </div>
+    <div class="metric-card accent" id="card-pnl">
+      <div class="metric-label">Session P&L</div>
+      <div class="metric-value pnl" id="m-pnl">—</div>
+    </div>
+    <div class="metric-card dim">
+      <div class="metric-label">Trades</div>
+      <div class="metric-value" id="m-trades">—</div>
+    </div>
+    <div class="metric-card dim">
+      <div class="metric-label">Win Rate</div>
+      <div class="metric-value" id="m-wr">—</div>
+    </div>
+  </section>
+
+  <!-- Position card -->
+  <section class="pos-card" id="pos-card">
+    <div class="pos-header">
+      <span class="pos-title">POSITION</span>
+      <span class="pos-side" id="pos-side">—</span>
+    </div>
+    <div class="pos-grid">
+      <div class="pos-field">
+        <div class="pos-label">Entry</div>
+        <div class="pos-value primary" id="pos-entry">—</div>
+      </div>
+      <div class="pos-field">
+        <div class="pos-label">Stop Loss</div>
+        <div class="pos-value" id="pos-sl">—</div>
+      </div>
+      <div class="pos-field">
+        <div class="pos-label">Breakeven</div>
+        <div class="pos-value" id="pos-be">—</div>
+      </div>
+      <div class="pos-field">
+        <div class="pos-label">Unrealised</div>
+        <div class="pos-value pnl" id="pos-pnl">—</div>
+      </div>
+    </div>
+  </section>
+  <div class="pos-empty" id="pos-empty">No open position</div>
+
+  <!-- Control buttons -->
+  <section class="controls">
+    <button class="btn btn-green"  id="btn-start">▶ Start</button>
+    <button class="btn btn-red"    id="btn-stop">■ Stop</button>
+    <button class="btn btn-amber"  id="btn-safe">🚨 Safe</button>
+    <button class="btn btn-accent" id="btn-settings" onclick="location.href='settings.html'+window.location.search">⚙ Settings</button>
+  </section>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

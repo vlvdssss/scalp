@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+  <title>Settings — XAUUSD Scalper</title>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    .settings-body { padding: 0 12px 24px; }
+    .section-title {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .07em;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin: 18px 0 8px;
+    }
+    .setting-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 8px 12px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      margin-bottom: 6px;
+    }
+    .setting-label {
+      flex: 1;
+      font-size: 13px;
+      color: var(--text);
+      line-height: 1.3;
+    }
+    .setting-sub {
+      font-size: 10px;
+      color: var(--muted);
+    }
+    input[type="number"],
+    input[type="text"] {
+      width: 90px;
+      background: #0D1520;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      padding: 5px 8px;
+      text-align: right;
+      outline: none;
+    }
+    input[type="number"]:focus,
+    input[type="text"]:focus { border-color: var(--accent); }
+
+    input[type="checkbox"] {
+      appearance: none;
+      width: 38px;
+      height: 22px;
+      background: var(--border);
+      border-radius: 11px;
+      position: relative;
+      cursor: pointer;
+      transition: background .2s;
+      flex-shrink: 0;
+    }
+    input[type="checkbox"]::after {
+      content: '';
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      background: #fff;
+      border-radius: 50%;
+      top: 3px;
+      left: 3px;
+      transition: left .2s;
+    }
+    input[type="checkbox"]:checked { background: var(--accent); }
+    input[type="checkbox"]:checked::after { left: 19px; }
+
+    .save-row {
+      margin-top: 20px;
+      display: flex;
+      gap: 8px;
+    }
+    .save-row .btn { flex: 1; padding: 13px; }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <button class="icon-btn" id="btn-back" style="font-size:16px">← Back</button>
+    <span class="header-title" style="font-size:14px">Settings</span>
+    <span id="save-status" style="font-size:12px;color:var(--muted)"></span>
+  </header>
+
+  <div class="settings-body">
+
+    <div class="section-title">Trailing Stop</div>
+    <div class="setting-row">
+      <div><div class="setting-label">Activation</div><div class="setting-sub">points</div></div>
+      <input type="number" id="trail_activation_points" step="0.5" min="1"/>
+    </div>
+    <div class="setting-row">
+      <div><div class="setting-label">Trail Stop</div><div class="setting-sub">points behind price</div></div>
+      <input type="number" id="trail_stop_points" step="0.5" min="1"/>
+    </div>
+    <div class="setting-row">
+      <div><div class="setting-label">Trail Step</div><div class="setting-sub">min move to update</div></div>
+      <input type="number" id="trail_step_points" step="0.5" min="0.5"/>
+    </div>
+
+    <div class="section-title">Breakeven</div>
+    <div class="setting-row">
+      <div><div class="setting-label">BE Activation</div><div class="setting-sub">USD profit to arm</div></div>
+      <input type="number" id="be_activation_usd" step="0.1" min="0.1"/>
+    </div>
+    <div class="setting-row">
+      <div><div class="setting-label">BE Stop offset</div><div class="setting-sub">USD behind entry</div></div>
+      <input type="number" id="be_stop_usd" step="0.05" min="0"/>
+    </div>
+
+    <div class="section-title">Entry / Orders</div>
+    <div class="setting-row">
+      <div><div class="setting-label">Min Offset</div><div class="setting-sub">total pts from price</div></div>
+      <input type="number" id="min_total_offset_points" step="1" min="1"/>
+    </div>
+    <div class="setting-row">
+      <div><div class="setting-label">Max Offset</div><div class="setting-sub">absolute cap</div></div>
+      <input type="number" id="offset_abs_max_points" step="1" min="1"/>
+    </div>
+    <div class="setting-row">
+      <div><div class="setting-label">Rearm Hysteresis</div><div class="setting-sub">pts</div></div>
+      <input type="number" id="rearm_hysteresis_pts" step="1" min="0"/>
+    </div>
+    <div class="setting-row">
+      <div><div class="setting-label">Min Order Age</div><div class="setting-sub">ms</div></div>
+      <input type="number" id="min_order_age_ms" step="100" min="0"/>
+    </div>
+    <div class="setting-row">
+      <div><div class="setting-label">Impulse Capture Floor</div><div class="setting-sub">pts</div></div>
+      <input type="number" id="impulse_capture_floor_pts" step="1" min="0"/>
+    </div>
+    <div class="setting-row">
+      <div><div class="setting-label">Impulse Spread Mult</div><div class="setting-sub">×</div></div>
+      <input type="number" id="impulse_capture_spread_mult" step="0.1" min="0"/>
+    </div>
+
+    <div class="section-title">Risk</div>
+    <div class="setting-row">
+      <div><div class="setting-label">Volume</div><div class="setting-sub">lots</div></div>
+      <input type="number" id="volume" step="0.01" min="0.01"/>
+    </div>
+    <div class="setting-row">
+      <div><div class="setting-label">Target Risk</div><div class="setting-sub">USD per trade</div></div>
+      <input type="number" id="target_risk_usd" step="0.1" min="0.1"/>
+    </div>
+    <div class="setting-row">
+      <div><div class="setting-label">Emergency SL</div><div class="setting-sub">pts</div></div>
+      <input type="number" id="emergency_sl_points" step="5" min="10"/>
+    </div>
+
+    <div class="section-title">Pause Guard — Loss Streak</div>
+    <div class="setting-row">
+      <div class="setting-label">Enable streak pause</div>
+      <input type="checkbox" id="pause_streak_enabled"/>
+    </div>
+    <div class="setting-row">
+      <div><div class="setting-label">Consecutive losses</div><div class="setting-sub">triggers pause</div></div>
+      <input type="number" id="pause_streak_limit" step="1" min="1"/>
+    </div>
+    <div class="setting-row">
+      <div><div class="setting-label">Pause duration</div><div class="setting-sub">minutes</div></div>
+      <input type="number" id="pause_streak_minutes" step="5" min="1"/>
+    </div>
+
+    <div class="section-title">Pause Guard — Time Window</div>
+    <div class="setting-row">
+      <div class="setting-label">Enable window pause</div>
+      <input type="checkbox" id="pause_window_enabled"/>
+    </div>
+    <div class="setting-row">
+      <div><div class="setting-label">Window</div><div class="setting-sub">minutes</div></div>
+      <input type="number" id="pause_window_minutes" step="5" min="1"/>
+    </div>
+    <div class="setting-row">
+      <div><div class="setting-label">Loss threshold</div><div class="setting-sub">USD in window</div></div>
+      <input type="number" id="pause_window_loss_usd" step="0.5" min="0.1"/>
+    </div>
+    <div class="setting-row">
+      <div><div class="setting-label">Pause duration</div><div class="setting-sub">minutes after window hit</div></div>
+      <input type="number" id="pause_window_pause_minutes" step="5" min="1"/>
+    </div>
+
+    <div class="save-row">
+      <button class="btn btn-green" id="btn-save">💾 Save</button>
+      <button class="btn btn-accent" id="btn-back2">Back</button>
+    </div>
+
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+  "use strict";
+  const tg = window.Telegram?.WebApp;
+  if (tg) { tg.ready(); tg.expand(); tg.BackButton.show(); tg.BackButton.onClick(() => history.back()); }
+
+  const _sp    = new URLSearchParams(window.location.search);
+  const API     = (_sp.get("api") || "").replace(/\/$/, "") || window.location.origin;
+  const API_KEY = _sp.get("key") || "";
+
+  async function apiFetch(path, method = "GET", body = null) {
+    const headers = { "Content-Type": "application/json" };
+    if (API_KEY) headers["X-API-Key"] = API_KEY;
+    const opts = { method, headers };
+    if (body) opts.body = JSON.stringify(body);
+    const qs = API_KEY && method === "GET" ? `?key=${API_KEY}` : "";
+    const res = await fetch(API + path + qs, opts);
+    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+    return res.json();
+  }
+
+  let _toastTimer;
+  function toast(msg) {
+    const el = document.getElementById("toast");
+    el.textContent = msg;
+    el.classList.add("show");
+    clearTimeout(_toastTimer);
+    _toastTimer = setTimeout(() => el.classList.remove("show"), 2800);
+  }
+
+  const FIELDS = [
+    "trail_activation_points","trail_stop_points","trail_step_points",
+    "be_activation_usd","be_stop_usd",
+    "min_total_offset_points","offset_abs_max_points","rearm_hysteresis_pts",
+    "min_order_age_ms","impulse_capture_floor_pts","impulse_capture_spread_mult",
+    "volume","target_risk_usd","emergency_sl_points",
+    "pause_streak_enabled","pause_streak_limit","pause_streak_minutes",
+    "pause_window_enabled","pause_window_minutes","pause_window_loss_usd","pause_window_pause_minutes"
+  ];
+
+  async function loadSettings() {
+    try {
+      const s = await apiFetch("/settings");
+      for (const key of FIELDS) {
+        const el = document.getElementById(key);
+        if (!el) continue;
+        if (el.type === "checkbox") el.checked = !!s[key];
+        else el.value = s[key] ?? "";
+      }
+    } catch (e) {
+      toast("⚠ Load failed: " + e.message);
+    }
+  }
+
+  async function saveSettings() {
+    const updates = {};
+    for (const key of FIELDS) {
+      const el = document.getElementById(key);
+      if (!el) continue;
+      if (el.type === "checkbox") updates[key] = el.checked;
+      else if (el.type === "number") updates[key] = parseFloat(el.value);
+      else updates[key] = el.value;
+    }
+    try {
+      await apiFetch("/update-settings", "POST", { settings: updates });
+      document.getElementById("save-status").textContent = "Saved ✓";
+      setTimeout(() => { document.getElementById("save-status").textContent = ""; }, 2000);
+      toast("✅ Settings saved — restart bot to apply");
+    } catch (e) {
+      toast("❌ Save failed: " + e.message);
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("btn-back").addEventListener("click",  () => history.back());
+    document.getElementById("btn-back2").addEventListener("click", () => history.back());
+    document.getElementById("btn-save").addEventListener("click",  saveSettings);
+    loadSettings();
+  });
+  </script>
+</body>
+</html>

@@ -1,0 +1,166 @@
+anti_flat:
+  be_storm:
+    cooldown_min: 0
+    n_be: 3
+    window_min: 30
+  n_be: 3
+  t_cooldown_min: 0
+  w_be_min: 30
+atr:
+  atr_min_points: 100.0
+  bars_fetch: 100
+  period: 14
+  ratio_max: 0.6
+breakeven:
+  be_activation_usd: 0.5
+  be_stop_usd: 0.35
+  min_hold_ms: 1500.0
+confirm:
+  confirm_min_points: 20.0
+  cooldown_on_fail_sec: 120.0
+  fake_breakout_enabled: false
+  k_confirm_atr: 0.05
+  k_confirm_spread: 1.35
+  window_ms: 3000
+  window_ticks: 12
+connectivity:
+  reconnect_backoff_initial_sec: 5
+  reconnect_backoff_max_sec: 120
+  reconnect_max_attempts: 20
+cooldown_after_close_sec: 20.0
+cooldown_after_loss_sec: 50.0
+cooldown_after_win_sec: 0.0
+deny_only_on_loss: true
+directional_cooldown:
+  burst_atr_mult: 0.45
+  sec: 5.0
+double_trigger:
+  guard_ms: 2000
+early_exit:
+  enabled: true
+  mfe_min_pts: 14.0
+  mfe_spread_mult: 1.0
+  window_ms: 25000
+entry:
+  burst_max_wait_ms: 0.0
+  burst_min_abs_pts: 20.0
+  burst_min_spread_mult: 1.2
+  counter_trend_extra_points: 0.0
+  counter_trend_window_sec: 5.0
+  entry_buffer_atr_mult: 0.25
+  entry_buffer_enabled: false
+  entry_buffer_spread_mult: 2.0
+  entry_offset_min_points: 35.0
+  fixed_min_buffer: 60.0
+  flat_freeze_enabled: false
+  flat_freeze_ttl_ms: 12000.0
+  flat_offset_pts: 45.0
+  flat_range_pts: 40.0
+  flat_window_ms: 20000.0
+  idle_offset_spread_mult: 1.0
+  impulse_atr_mult: 0.95
+  impulse_capture_delta_pts: 80.0
+  impulse_capture_dur_ms: 2000.0
+  impulse_capture_floor_pts: 20.0
+  impulse_capture_spread_mult: 0.5
+  impulse_dur_ms: 1500.0
+  k_entry_atr: 0.14
+  k_entry_spread: 1.0
+  min_order_age_ms: 1500.0
+  min_total_offset_points: 38.0
+  mode: balanced
+  noise_mult_high: 1.28
+  noise_mult_mid: 1.15
+  noise_ratio_high: 2.6
+  noise_ratio_mid: 2.1
+  noise_window_ms: 3000.0
+  offset_abs_max_points: 40.0
+  offset_cap_atr: 0.4
+  offset_max_spread_mult: 6.0
+  offset_min_spread_mult: 3.0
+  orders_expand_points: 2.0
+  rearm_hysteresis_pts: 25.0
+logging:
+  jsonl_path: logs/events.jsonl
+  level: INFO
+  max_jsonl_archives: 2
+  max_jsonl_mb: 10
+  sqlite_path: logs/trades.db
+micro_guard:
+  flat_ticks_limit: 3
+  latency_max_ms: 500
+  pause_on_trigger_ms: 8000
+  ping_max_ms: 1000
+  recovery_stability_ms: 6000
+  tick_stale_ms: 5000
+mt5:
+  login: 0
+  password: ''
+  path: ''
+  server: ''
+  timeout_ms: 10000
+pending:
+  ttl_sec: 45
+  use_order_time_specified: false
+position:
+  cancel_deadline_ms: 20000
+profit_continuation:
+  enabled: true
+  require_managed_exit: false
+  window_sec: 4.0
+rate_limit:
+  max_trades_per_minute: 1
+  window_sec: 15
+rearm:
+  k_rearm_atr: 0.06
+  k_rearm_spread: 0.5
+  rearm_hysteresis_pts: 25.0
+  rearm_min_points: 12.0
+recovery:
+  trail_dist_multiplier: 1.5
+  warmup_sec: 60
+retcode:
+  backoff_invalid_stops_ms: 2000
+  backoff_requote_ms: 500
+  max_retries_requote: 3
+  max_retries_timeout: 3
+  op_deadline_ms: 3000.0
+risk:
+  emergency_sl_points: 150.0
+  sl_safety_buffer_points: 10.0
+  target_risk_usd: 0.7
+  volume: 0.01
+safe_mode_enabled: false
+session:
+  market_close_block_min: 15
+  market_open_block_min: 15
+  trading_sessions: []
+sl:
+  k_sl_atr: 0.8
+  k_sl_spread: 3.0
+  sl_max_points: 100.0
+  sl_min_points: 80.0
+spec_version: 1.0.0
+spread:
+  k_maxspread: 2.5
+  k_spike: 3.5
+  maxspread_cap: 200.0
+  maxspread_min: 30.0
+  rolling_window_sec: 300.0
+symbol:
+  magic: 20260225
+  name: XAUUSD.s
+telegram:
+  bot_token: ''
+  chat_id: ''
+  enabled: false
+  timeout_sec: 10
+timing:
+  cycle_budget_ms: 500
+  cycle_interval_ms: 100
+  max_skips_before_safe: 10
+trailing:
+  throttle_sec: 0.3
+  trail_activation_points: 55.0
+  trail_step_points: 10.0
+  trail_stop_points: 20.0

@@ -1,0 +1,139 @@
+======================================================
+  XAUUSD SCALPER — WEEKLY ANALYSIS
+  Account : 700078911 (PU Prime Demo)
+  Period  : 2026-03-23 to 2026-03-27
+  Bot ver : OLD (before current session fixes)
+  Analyzed: 2026-03-28
+======================================================
+
+  OVERVIEW
+  Total trades     : 14 140
+  Wins / Losses    : 6 173 / 7 967
+  Win rate         : 43.7%
+  Break-even WR    : 33.3%  (margin: +10.4 pp)
+  Total P&L        : +$3 451.88
+  Gross profit     : +$9 714.10
+  Gross loss       : -$6 262.22
+  Profit factor    : 1.55
+  Max drawdown     : $55.69
+  Max consec loss  : 14
+
+  WINNERS
+  Avg profit       : $1.57  (157 pts)
+  Avg hold time    : 15 s
+
+  LOSERS
+  Avg loss         : $0.79  (79 pts)
+  Avg hold time    : 6 s
+  RRR (win/loss)   : 2.00
+
+  SIDE BREAKDOWN
+  BUY : 7 256 trades  WR=42.9%  P&L=+$1 690.45  avgW=+$1.59  avgL=-$0.79
+  SELL: 6 884 trades  WR=44.4%  P&L=+$1 761.43  avgW=+$1.56  avgL=-$0.79
+
+  DAILY BREAKDOWN
+  Date     | Trades |   WR%  |     P&L  | $/trade
+  -------------------------------------------------
+  03-23    |  4 135 | 46.8%  | +$1855   |  $0.45
+  03-24    |  3 307 | 42.2%  |  +$728   |  $0.22
+  03-25    |  2 203 | 41.2%  |  +$207   |  $0.09
+  03-26    |  2 751 | 43.2%  |  +$469   |  $0.17
+  03-27    |  1 744 | 42.7%  |  +$194   |  $0.11
+
+  PROFIT DISTRIBUTION (0.50 buckets)
+  -$1.50 |     3
+  -$1.00 |  7759  <<< 97% of all losses hit SL at exactly -$1.00
+  -$0.50 |   205
+   $0.00 |   635
+  +$0.50 |  2581
+  +$1.00 |   834
+  +$1.50 |   559
+  +$2.00 |   439
+  +$2.50 |   311
+  +$3.00 |   192
+  +$3.50 |   164
+  +$4.00 |   116
+  ...
+  +$44.0 |     1  (flash crash capture, 4 sec hold)
+
+  TOP 10 WINS
+  03-24  sell  4439.05 -> 4394.79  +$44.26  +4426 pts  4s   (flash crash)
+  03-23  buy   4487.88 -> 4511.59  +$23.71  +2371 pts  31s
+  03-26  buy   4356.97 -> 4377.60  +$20.63  +2063 pts  6s
+  03-23  sell  4389.47 -> 4369.04  +$20.43  +2043 pts  8s
+  03-23  buy   4459.43 -> 4474.29  +$14.86  +1486 pts  17s
+  03-23  buy   4462.84 -> 4477.58  +$14.74  +1474 pts  17s
+  03-23  sell  4440.56 -> 4426.03  +$14.53  +1453 pts  6s
+  03-24  buy   4403.74 -> 4418.26  +$14.52  +1452 pts  20s
+  03-23  buy   4426.78 -> 4439.88  +$13.10  +1310 pts  15s
+  03-23  buy   4480.32 -> 4493.29  +$12.97  +1297 pts  13s
+
+  TOP 10 LOSSES
+  03-23  sell  4461.36 -> 4462.77  -$1.41  -141 pts  1s
+  03-27  buy   4434.57 -> 4433.46  -$1.11  -111 pts  0s
+  03-23  buy   ~100 pts hits...  -$1.00 each  0-1s
+
+======================================================
+  PROBLEMS IDENTIFIED (old bot)
+======================================================
+
+  1. SL too wide: sl_min=80pts, sl_max=100pts -> -$1.00 per hit
+     97% of 7967 losers = exactly -$1.00 in 0-1 sec
+     Fix: sl_min: 80->50, sl_max: 100->60  (saves ~$0.40/loss)
+
+  2. Too many trades: 14 140/week (~2800/day)
+     With real commissions ~$7 RT -> -$990/week extra cost
+     Effective PF drops from 1.55 to ~1.32
+     Fix: higher rearm_hysteresis + min_order_age (partially done)
+
+  3. Over-reliance on volatile day:
+     03-23 = $1 855 (54% of weekly P&L), rest of week = $1 596
+     Top 10 wins alone = $193 (5.6% of total)
+     Insight: bot is great on impulses, weak in ranging market
+
+  4. WR degrades across the week:
+     Mon 46.8% -> Fri 42.7% (market shifting to range)
+     No market-regime adaptation
+
+  5. Trailing was broken (fixed in current session):
+     _violates_stops always blocked trail updates
+     Mega-wins ($44, $23) happened despite bug - on TP hits
+
+  6. Capture mode was wider than idle (fixed):
+     impulse_capture_floor_pts=50 > idle offset 38pts
+
+======================================================
+  FIXES ALREADY APPLIED IN NEW BOT
+======================================================
+
+  impulse_capture_spread_mult : 10    -> 0.5
+  impulse_capture_floor_pts   : 50    -> 20
+  rearm_hysteresis (idle)     : 8     -> 25
+  rearm_hysteresis (capture)  : max(25,8)=25 -> 8 hardcoded
+  min_order_age_ms            : 500   -> 1500
+  trail_activation_points     : 80    -> 55
+  trail_stop_points           : 30    -> 20
+  trail_step_points           : 20    -> 10
+  be_activation_usd           : 0.35  -> 0.50
+  be_stop_usd                 : 0.20  -> 0.35
+  Trailing logic              : FIXED (clamp, not skip)
+
+======================================================
+  NEXT IMPROVEMENTS (queued, not yet done)
+======================================================
+
+  Priority 1 (HIGH):
+    sl_min_points: 80 -> 50
+    sl_max_points: 100 -> 60
+    Each SL hit = $0.60 instead of $1.00
+    At 7959 losses/week -> saves ~$3 180 real-account cost
+
+  Priority 2 (MEDIUM):
+    confirm_ticks: increase to filter instant reversals
+    Most -$1.00 losses: hold=0s -> position closed same second it opened
+
+  Priority 3 (MEDIUM):
+    daily_loss_limit_usd: add hard stop per day
+
+  Priority 4 (LOW):
+    Session filter: avoid 01:00-07:00 UTC (Asian session, high spread)
